@@ -9,7 +9,8 @@
 .DEV_PROFILE := saml-origo-dev
 .PROD_PROFILE := saml-dataplatform-prod
 
-GLOBAL_PY := python3.7
+PY_VERSION := 3.7
+GLOBAL_PY := python$(PY_VERSION)
 BUILD_VENV ?= .build_venv
 BUILD_PY := $(BUILD_VENV)/bin/python
 
@@ -32,7 +33,7 @@ test: $(BUILD_VENV)/bin/tox
 	$(BUILD_PY) -m tox -p auto -o
 
 .PHONY: run
-run: $(BUILD_VENV)/bin/flask
+run: $(BUILD_VENV)/bin/flask $(BUILD_VENV)/lib/python$(PY_VERSION)/site-packages/flask_restful
 	FLASK_APP=app.py $(BUILD_PY) -m flask run
 
 .PHONY: upgrade-deps
@@ -100,4 +101,7 @@ $(BUILD_VENV)/bin/tox: $(BUILD_VENV)
 	$(BUILD_PY) -m pip install -U tox
 
 $(BUILD_VENV)/bin/%: $(BUILD_VENV)
+	$(BUILD_PY) -m pip install -U $*
+
+$(BUILD_VENV)/lib/python$(PY_VERSION)/site-packages/%: $(BUILD_VENV)
 	$(BUILD_PY) -m pip install -U $*
