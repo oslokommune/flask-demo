@@ -31,6 +31,10 @@ format: $(BUILD_VENV)/bin/black
 test: $(BUILD_VENV)/bin/tox
 	$(BUILD_PY) -m tox -p auto -o
 
+.PHONY: run
+run: $(BUILD_VENV)/bin/flask
+	FLASK_APP=app.py $(BUILD_PY) -m flask run
+
 .PHONY: upgrade-deps
 upgrade-deps: $(BUILD_VENV)/bin/pip-compile
 	$(BUILD_VENV)/bin/pip-compile -U

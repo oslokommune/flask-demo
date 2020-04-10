@@ -13,6 +13,11 @@ For tests and linting we use [pytest](https://pypi.org/project/pytest/),
 [black](https://pypi.org/project/black/).
 
 
+## Run
+
+`make run` to start up Flask app locally.
+
+
 ## Deploy
 
 `make deploy` or `make deploy-prod`
