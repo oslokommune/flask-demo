@@ -1,8 +1,0 @@
-handler: boilerplate.handler.get_boilerplate
-events:
-  - http:
-      path: "boilerplate"
-      method: "get"
-      cors: true
-layers:
-  - ${ssm:/dataplatform/python-base-lambda-layer/arn}

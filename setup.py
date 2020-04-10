@@ -1,6 +1,6 @@
 import os
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open("README.md", encoding="utf-8") as f:
     long_description = f.read()
@@ -16,6 +16,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.oslo.kommune.no/origo-dataplatform/flask-demo",
-    packages=find_packages(),
+    py_modules=["app"],
     install_requires=["Flask"],
 )
