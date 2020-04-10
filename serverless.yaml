@@ -3,7 +3,7 @@ service: lambda-boilerplate
 provider:
   name: aws
   runtime: python3.7
-  memorySize: 1024
+  memorySize: 128
   region: ${opt:region, 'eu-west-1'}
   stage: ${opt:stage, 'dev'}
   deploymentBucket:
