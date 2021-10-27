@@ -1,13 +1,5 @@
-.AWS_ROLE_NAME ?= oslokommune/iamadmin-SAML
-
-.DEV_ACCOUNT := ***REMOVED***
-.PROD_ACCOUNT := ***REMOVED***
-
-.DEV_ROLE := 'arn:aws:iam::$(.DEV_ACCOUNT):role/$(.AWS_ROLE_NAME)'
-.PROD_ROLE := 'arn:aws:iam::$(.PROD_ACCOUNT):role/$(.AWS_ROLE_NAME)'
-
-.DEV_PROFILE := saml-origo-dev
-.PROD_PROFILE := saml-dataplatform-prod
+.DEV_PROFILE := okdata-dev
+.PROD_PROFILE := okdata-prod
 
 PY_VERSION := 3.7
 GLOBAL_PY := python$(PY_VERSION)
@@ -41,12 +33,12 @@ upgrade-deps: $(BUILD_VENV)/bin/pip-compile
 	$(BUILD_VENV)/bin/pip-compile -U
 
 .PHONY: deploy
-deploy: node_modules test login-dev
+deploy: login-dev init format test
 	@echo "\nDeploying to stage: $${STAGE:-dev}\n"
 	sls deploy --stage $${STAGE:-dev} --aws-profile $(.DEV_PROFILE)
 
 .PHONY: deploy-prod
-deploy-prod: node_modules is-git-clean test login-prod
+deploy-prod: login-prod init format is-git-clean test
 	sls deploy --stage prod --aws-profile $(.PROD_PROFILE)
 
 ifeq ($(MAKECMDGOALS),undeploy)
@@ -64,16 +56,22 @@ undeploy: login-dev
 
 .PHONY: login-dev
 login-dev:
-	saml2aws login --role=$(.DEV_ROLE) --profile=$(.DEV_PROFILE)
+ifndef OKDATA_AWS_ROLE_DEV
+	$(error OKDATA_AWS_ROLE_DEV is not set)
+endif
+	saml2aws login --role=$(OKDATA_AWS_ROLE_DEV) --profile=$(.DEV_PROFILE)
 
 .PHONY: login-prod
 login-prod:
-	saml2aws login --role=$(.PROD_ROLE) --profile=$(.PROD_PROFILE)
+ifndef OKDATA_AWS_ROLE_PROD
+	$(error OKDATA_AWS_ROLE_PROD is not set)
+endif
+	saml2aws login --role=$(OKDATA_AWS_ROLE_PROD) --profile=$(.PROD_PROFILE)
 
 .PHONY: is-git-clean
 is-git-clean:
 	@status=$$(git fetch origin && git status -s -b) ;\
-	if test "$${status}" != "## master...origin/master"; then \
+	if test "$${status}" != "## main...origin/main"; then \
 		echo; \
 		echo Git working directory is dirty, aborting >&2; \
 		false; \
@@ -83,22 +81,12 @@ is-git-clean:
 build: $(BUILD_VENV)/bin/wheel $(BUILD_VENV)/bin/twine
 	$(BUILD_PY) setup.py sdist bdist_wheel
 
-.PHONY: jenkins-bump-patch
-jenkins-bump-patch: $(BUILD_VENV)/bin/bump2version is-git-clean
-	$(BUILD_VENV)/bin/bump2version patch
-	git push origin HEAD:${BRANCH_NAME}
-
-
 ###
 # Python build dependencies
 ##
 
 $(BUILD_VENV)/bin/pip-compile: $(BUILD_VENV)
 	$(BUILD_PY) -m pip install -U pip-tools
-
-$(BUILD_VENV)/bin/tox: $(BUILD_VENV)
-	$(BUILD_PY) -m pip install -I virtualenv==16.7.9
-	$(BUILD_PY) -m pip install -U tox
 
 $(BUILD_VENV)/bin/%: $(BUILD_VENV)
 	$(BUILD_PY) -m pip install -U $*
